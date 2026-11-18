@@ -5,7 +5,7 @@
  *   então nada privado fica salvo no cache do aparelho.
  * Para forçar atualização depois de mudar o site, troque o número em CACHE.
  */
-const CACHE = 'cantinho-v1'
+const CACHE = 'cantinho-v2'
 const SHELL = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png']
 
 self.addEventListener('install', (event) => {

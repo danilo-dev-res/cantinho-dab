@@ -3,7 +3,7 @@ import { ArrowRight, CalendarClock, Gift, Heart, ImagePlus, Shuffle, Sparkles } 
 import Polaroid from './Polaroid'
 import { Avatar } from './Decor'
 import {
-  daysBetween, formatLong, onThisDay, plural, todayISO, togetherParts, upcomingSpecials, weekdayIndex, withAnniversary,
+  daysBetween, formatLong, onThisDay, plural, scheduleOn, todayISO, togetherParts, upcomingSpecials, withAnniversary,
 } from '../lib/dates'
 
 export default function Home({ settings, events, photos, schedule, go, openPhoto }) {
@@ -14,7 +14,7 @@ export default function Home({ settings, events, photos, schedule, go, openPhoto
     [photos],
   )
   const next = upcomingSpecials(withAnniversary(events, settings), today, 1)[0]
-  const todayItems = schedule.filter((s) => s.day === weekdayIndex()).sort((a, b) => a.time.localeCompare(b.time))
+  const todayItems = scheduleOn(schedule, today)
   const memories = onThisDay(photos, today)
 
   return (

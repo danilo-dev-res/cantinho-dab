@@ -1,16 +1,17 @@
 import { useMemo, useState } from 'react'
-import { CalendarHeart, Check, ChevronLeft, ChevronRight, ImagePlus, Pencil, Plus, Trash2 } from 'lucide-react'
+import { CalendarHeart, Check, ChevronLeft, ChevronRight, ImagePlus, Pencil, Plus, Repeat, Trash2 } from 'lucide-react'
 import Modal from './Modal'
 import Polaroid from './Polaroid'
 import { Spinner } from './Decor'
 import { useUI } from '../lib/ui'
 import {
-  MONTHS, WEEKDAYS_SHORT, daysBetween, formatLong, monthGrid, occursOn, todayISO, upcomingSpecials, withAnniversary,
+  MONTHS, REPEAT_OPTIONS, REPEAT_SHORT, WEEKDAYS_SHORT, daysBetween, formatLong, monthGrid, occursOn, repeatOf, todayISO,
+  upcomingSpecials, withAnniversary,
 } from '../lib/dates'
 
 const EMOJIS = ['💜', '💞', '💍', '🎂', '🌹', '✈️', '🍷', '🎬', '🎉', '🏖️', '🍕', '🎵', '⭐', '📚', '💇', '🩺', '🐶', '🎁', '🏠', '🎮']
 
-const emptyEvent = (date) => ({ title: '', date, emoji: '💜', kind: 'special', yearly: true, note: '', photoIds: [] })
+const emptyEvent = (date) => ({ title: '', date, emoji: '💜', kind: 'special', repeat: 'yearly', note: '', photoIds: [] })
 
 export default function Calendar({ events, photos, settings }) {
   const { confirm, toast } = useUI()
@@ -196,7 +197,7 @@ function DayModal({ iso, events, photos, onClose, onAdd, onEdit }) {
                     <p className="font-extrabold text-violet-950">{e.title}</p>
                     <p className="text-xs font-bold text-violet-400">
                       {e.kind === 'special' ? 'data especial' : 'compromisso'}
-                      {e.yearly ? ' · todo ano' : ''}
+                      {REPEAT_SHORT[repeatOf(e)] ? ` · ${REPEAT_SHORT[repeatOf(e)]}` : ''}
                     </p>
                     {e.note && <p className="mt-2 whitespace-pre-line text-sm text-violet-800">{e.note}</p>}
                   </div>
@@ -224,7 +225,10 @@ function DayModal({ iso, events, photos, onClose, onAdd, onEdit }) {
 }
 
 function EventForm({ initial, photos, onClose, onSave, onDelete }) {
-  const [form, setForm] = useState(initial)
+  const [form, setForm] = useState(() => {
+    const { yearly: _old, ...rest } = initial
+    return { ...rest, repeat: repeatOf(initial) }
+  })
   const [progress, setProgress] = useState(null)
   const [saving, setSaving] = useState(false)
   const set = (patch) => setForm((f) => ({ ...f, ...patch }))
@@ -259,7 +263,7 @@ function EventForm({ initial, photos, onClose, onSave, onDelete }) {
             <button
               key={k}
               type="button"
-              onClick={() => set({ kind: k, yearly: k === 'special' })}
+              onClick={() => set({ kind: k, repeat: k === 'special' ? 'yearly' : 'once' })}
               className={`rounded-xl py-2.5 text-sm font-extrabold transition ${form.kind === k ? 'bg-white text-violet-800 shadow-md' : 'text-violet-500'}`}
             >
               {label}
@@ -272,12 +276,14 @@ function EventForm({ initial, photos, onClose, onSave, onDelete }) {
           <input className="input" value={form.title} onChange={(e) => set({ title: e.target.value })} placeholder="Ex.: Nosso primeiro beijo" autoFocus required />
         </label>
 
-        <div className="grid grid-cols-[1fr_auto] items-end gap-3">
-          <label className="block">
-            <span className="label">Data</span>
-            <input type="date" className="input" value={form.date} onChange={(e) => set({ date: e.target.value })} required />
-          </label>
-          <Toggle checked={form.yearly} onChange={(v) => set({ yearly: v })} label="Todo ano" />
+        <label className="block">
+          <span className="label">Data</span>
+          <input type="date" className="input" value={form.date} onChange={(e) => set({ date: e.target.value })} required />
+        </label>
+
+        <div>
+          <span className="label">Repetir</span>
+          <RepeatPicker value={form.repeat} onChange={(repeat) => set({ repeat })} />
         </div>
 
         <div>
@@ -371,5 +377,24 @@ export function Toggle({ checked, onChange, label }) {
       </button>
       <span className="text-sm font-bold text-violet-800">{label}</span>
     </label>
+  )
+}
+
+export function RepeatPicker({ value, onChange, options = REPEAT_OPTIONS }) {
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-2xl bg-violet-100/70 p-1 sm:grid-cols-4">
+      {options.map(([k, label]) => (
+        <button
+          key={k}
+          type="button"
+          onClick={() => onChange(k)}
+          className={`flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-2 text-[13px] font-extrabold transition ${
+            value === k ? 'bg-white text-violet-800 shadow-md' : 'text-violet-500 hover:text-violet-700'
+          }`}
+        >
+          {k !== 'once' && <Repeat className="size-3.5" />} {label}
+        </button>
+      ))}
+    </div>
   )
 }

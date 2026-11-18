@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CalendarClock, CalendarHeart, Camera, Heart, House, Lock } from 'lucide-react'
+import { CalendarClock, CalendarHeart, Camera, Heart, House, Lock, MessageCircleHeart } from 'lucide-react'
 import Home from './components/Home'
 import Calendar from './components/Calendar'
 import Photos, { Lightbox } from './components/Photos'
 import Weekly from './components/Weekly'
+import Notes from './components/Notes'
 import Settings from './components/Settings'
 import SpecialDay from './components/SpecialDay'
 import LockScreen from './components/LockScreen'
@@ -19,6 +20,7 @@ const TABS = [
   { id: 'calendar', label: 'Calendário', icon: CalendarHeart },
   { id: 'photos', label: 'Fotos', icon: Camera },
   { id: 'week', label: 'Semana', icon: CalendarClock },
+  { id: 'notes', label: 'Recados', icon: MessageCircleHeart },
   { id: 'us', label: 'Nós', icon: Heart },
 ]
 
@@ -58,6 +60,7 @@ function Site() {
   const { settings, setSettings, loading } = useSettings()
   const events = useCollection('event')
   const schedule = useCollection('schedule')
+  const notes = useCollection('note')
   const photos = usePhotos()
 
   const today = todayISO()
@@ -71,7 +74,7 @@ function Site() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  if (loading || events.loading || schedule.loading || photos.loading) return <Splash text="buscando nossas coisas…" />
+  if (loading || events.loading || schedule.loading || notes.loading || photos.loading) return <Splash text="buscando nossas coisas…" />
 
   const years = settings.startDate ? Math.max(1, new Date().getFullYear() - Number(settings.startDate.slice(0, 4))) : 1
   const special = preview ? { type: 'anniversary', years } : specialToday(settings, events.items, today)
@@ -142,6 +145,7 @@ function Site() {
         {tab === 'calendar' && <Calendar events={events} photos={photos} settings={settings} />}
         {tab === 'photos' && <Photos photos={photos} openPhoto={openPhoto} />}
         {tab === 'week' && <Weekly schedule={schedule} settings={settings} />}
+        {tab === 'notes' && <Notes notes={notes} settings={settings} />}
         {tab === 'us' && (
           <Settings
             settings={settings}
@@ -165,7 +169,7 @@ function Site() {
           <button
             key={id}
             onClick={() => go(id)}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-[1.25rem] py-2 text-[11px] font-extrabold transition ${
+            className={`flex flex-1 flex-col items-center gap-0.5 rounded-[1.25rem] px-0.5 py-2 text-[10px] font-extrabold transition ${
               tab === id ? 'bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white shadow-md shadow-violet-300' : 'text-violet-400'
             }`}
           >
